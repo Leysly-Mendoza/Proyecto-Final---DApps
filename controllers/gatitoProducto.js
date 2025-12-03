@@ -1,61 +1,83 @@
 const { ethers } = require('ethers');
-const contract = require('../artifacts/contracts/Wallet.sol/MultiSignPaymentWallet.json');
+
+// ABI del contrato multisig + venta de gatitos
+const contract = require('../backend/artifacts/contracts/GatitoWallet.sol/GatitosPaymentMultisig.json');
+
 const { createTransaction, getContract } = require('../utils/contractHelper');
 const { WALLET_CONTRACT } = process.env;
 
-// Función genérica
-async function sendTransaction(method, params, account) {
-  return await createTransaction(WALLET_CONTRACT, contract.abi, method, params, account);
-}
+/* ----------------------------------------------------------
+    🐱 1. AGREGAR GATITO
+------------------------------------------------------------- */
 
-// LISTAR GATITO NUEVO
-async function listarGatito(nombre, precio, cuenta) {
-  const precioWei = ethers.parseEther(precio.toString());
-  const receipt = await sendTransaction('listarGatito', [nombre, precioWei], cuenta);
-  return receipt;
-}
+async function agregarGatito(nombre, precioEth, imagenIpfs, cuenta) {
+  const precioWei = ethers.utils.parseEther(precioEth.toString());
 
-// ADOPTAR GATITO (comprar)
-async function adoptarGatito(gatitoId, cuenta) {
-  const contratoWallet = getContract(WALLET_CONTRACT, contract.abi);
-
-  const gatito = await contratoWallet.gatitos(gatitoId);
-  const precio = gatito.precio;
-
-  const tx = await createTransaction(
+  return await createTransaction(
     WALLET_CONTRACT,
     contract.abi,
-    'adoptarGatito',
+    "agregarGatito",
+    [nombre, precioWei, imagenIpfs],
+    cuenta
+  );
+}
+
+/* ----------------------------------------------------------
+    🐱 2. COMPRAR GATITO
+------------------------------------------------------------- */
+
+async function comprarGatito(gatitoId, cuenta) {
+  const walletContract = getContract(WALLET_CONTRACT, contract.abi);
+
+  const todos = await walletContract.obtenerGatitos();
+  const g = todos[gatitoId];
+  const precio = g.precio; // en wei
+
+  return await createTransaction(
+    WALLET_CONTRACT,
+    contract.abi,
+    "comprarGatito",
     [gatitoId],
     cuenta,
     precio
   );
-
-  return tx;
 }
 
-// DESHABILITAR GATITO
-async function deshabilitarGatito(gatitoId, cuenta) {
-  return await sendTransaction('deshabilitarGatito', [gatitoId], cuenta);
-}
+/* ----------------------------------------------------------
+    🐱 3. OBTENER TODOS LOS GATITOS
+------------------------------------------------------------- */
 
-// OBTENER TODOS LOS GATITOS
-async function getGatitos() {
-  const contratoWallet = getContract(WALLET_CONTRACT, contract.abi);
-  const gatitos = await contratoWallet.getGatitos();
+async function obtenerGatitos() {
+  const wallet = getContract(WALLET_CONTRACT, contract.abi);
+  const arr = await wallet.obtenerGatitos();
 
-  return gatitos.map(g => ({
-    id: Number(g.id),
+  return arr.map(g => ({
+    id: g.id.toString(),
     nombre: g.nombre,
-    precio: ethers.formatEther(g.precio),
-    vendedor: g.vendedor,
-    activo: g.activo
+    precioEth: ethers.utils.formatEther(g.precio),
+    imagen: g.imagen,
+    criador: g.criador,
+    disponible: g.disponible
   }));
 }
 
+/* ----------------------------------------------------------
+    🐱 4. DESHABILITAR GATITO
+------------------------------------------------------------- */
+
+async function deshabilitarGatito(gatitoId, cuenta) {
+  return await createTransaction(
+    WALLET_CONTRACT,
+    contract.abi,
+    "deshabilitarGatito",
+    [gatitoId],
+    cuenta
+  );
+}
+
 module.exports = {
-  listarGatito,
-  adoptarGatito,
-  deshabilitarGatito,
-  getGatitos
+  agregarGatito,
+  comprarGatito,
+  obtenerGatitos,
+  deshabilitarGatito
 };

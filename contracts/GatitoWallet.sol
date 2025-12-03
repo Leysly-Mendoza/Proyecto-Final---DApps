@@ -220,4 +220,10 @@ contract GatitosPaymentMultisig {
     function verBalance() external view returns (uint256) {
         return address(this).balance;
     }
+
+    function deshabilitarGatito(uint _gatitoId) external soloCuidador {
+    Gatito storage g = gatitos[_gatitoId];
+    require(g.disponible, "Ya esta deshabilitado");
+    g.disponible = false;
+}
 }
