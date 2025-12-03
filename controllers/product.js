@@ -1,6 +1,6 @@
 const { ethers } = require('ethers');
 // IMPORTANTE: Busca el JSON con el nombre del contrato interno
-const contract = require('../artifacts/contracts/GatitoWallet.sol/GatitosPaymentMultisig.json');
+const contract = require('../backend/artifacts/contracts/GatitoWallet.sol/GatitosPaymentMultisig.json');
 const { createTransaction, getContract } = require('../utils/contractHelper');
 const { WALLET_CONTRACT } = process.env;
 

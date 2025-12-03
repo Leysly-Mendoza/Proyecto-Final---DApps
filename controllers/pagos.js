@@ -1,6 +1,6 @@
 const { ethers } = require('ethers');
 // IMPORTANTE: Ruta al nuevo JSON
-const contract = require('../artifacts/contracts/GatitoPagos.sol/PagosGatitos.json');
+const contract = require('../backend/artifacts/contracts/GatitoPagos.sol/PagosGatitos.json');
 const { createTransaction, depositToContract, getContract } = require('../utils/contractHelper');
 // Necesitas agregar esta dirección a tu .env si no la tienes
 const { PAGOS_CONTRACT_ADDRESS } = process.env; 

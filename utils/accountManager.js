@@ -5,7 +5,8 @@ const { API_URL, PUBLIC_KEYS, PRIVATE_KEYS } = process.env;
 const publickeys = PUBLIC_KEYS ? PUBLIC_KEYS.split(',') : [];
 const privatekeys = PRIVATE_KEYS ? PRIVATE_KEYS.split(',') : [];
 
-const provider = new ethers.JsonRpcProvider(API_URL);
+// CAMBIO PARA V5: Agregamos .providers
+const provider = new ethers.providers.JsonRpcProvider(API_URL);
 
 function getWallet(accountIndex) {
     const index = parseInt(accountIndex);
