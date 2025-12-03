@@ -1,11 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const walletController = require('../controllers/wallet');
-const { ethers } = require('ethers');
+// Ya no necesitas importar ethers aquí si no haces conversiones
+// const { ethers } = require('ethers'); 
+
 router.post('/deposit', async (req, res) => {
     try {
         const { amount, account } = req.body;
-        console.log(req.body)
+        console.log("Deposit body:", req.body);
         await walletController.deposit(amount, account);
         res.json({ success: true, message: 'Deposit successful' });
     } catch (error) {
@@ -13,24 +15,28 @@ router.post('/deposit', async (req, res) => {
         res.status(500).json({ success: false, message: error.message });
     }
 });
+
 router.post('/submit', async (req, res) => {
     try {
         const { to, amount, account } = req.body;
-    
-
-        const parsedAmount = ethers.utils.parseEther(amount.toString());
-        const receipt = await walletController.submitTransaction(to, parsedAmount, account);
+        
+        // --- CORRECCIÓN AQUÍ ---
+        // NO convertimos a parseEther aquí, porque el controlador ya lo hace.
+        // Solo pasamos el 'amount' tal cual llegó (ej: "0.01")
+        const receipt = await walletController.submitTransaction(to, amount, account);
+        
         res.json({ success: true, message: 'Transaction submitted', receipt });
     } catch (error) {
         console.error('Submit error:', error);
         res.status(500).json({ success: false, message: error.message });
     }
 });
+
+// ... Las demás rutas (approve, execute, release, transactions, balance, approvals) 
+// ESTÁN PERFECTAS, déjalas igual.
 router.post('/approve', async (req, res) => {
     try {
         const { transactionId, account } = req.body;
-       
-
         const receipt = await walletController.approveTransaction(transactionId, account);
         res.json({ success: true, message: 'Transaction approved', receipt });
     } catch (error) {
@@ -38,11 +44,10 @@ router.post('/approve', async (req, res) => {
         res.status(500).json({ success: false, message: error.message });
     }
 });
+
 router.post('/execute', async (req, res) => {
     try {
         const { transactionId, account } = req.body;
-      
-
         const receipt = await walletController.executeTransaction(transactionId, account);
         res.json({ success: true, message: 'Transaction executed', receipt });
     } catch (error) {
@@ -54,8 +59,6 @@ router.post('/execute', async (req, res) => {
 router.post('/release', async (req, res) => {
     try {
         const { account } = req.body;
-        
-
         const receipt = await walletController.releasePayments(account);
         res.json({ success: true, message: 'Payments released to all payees', receipt });
     } catch (error) {
@@ -73,6 +76,7 @@ router.get('/transactions', async (req, res) => {
         res.status(500).json({ success: false, message: error.message });
     }
 });
+
 router.get('/balance', async (req, res) => {
     try {
         const balance = await walletController.getBalance();
@@ -82,17 +86,12 @@ router.get('/balance', async (req, res) => {
         res.status(500).json({ success: false, message: error.message });
     }
 });
-// 🔹 Obtener lista de aprobadores y fecha de aprobación por transacción
+
 router.get('/approvals/:txId', async (req, res) => {
     try {
         const { txId } = req.params;
-
         const approvals = await walletController.getApprovals(txId);
-
-        res.json({
-            success: true,
-            approvals
-        });
+        res.json({ success: true, approvals });
     } catch (error) {
         console.error('Get approvals error:', error);
         res.status(500).json({ success: false, message: error.message });

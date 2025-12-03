@@ -1,135 +1,148 @@
 import { useState, useEffect } from 'react';
-import { ethers } from 'ethers';
+import { ethers } from 'ethers'; // v5
 import './App.css';
 
-// Usaremos tu Backend para obtener los datos
 const API_BASE_URL = "http://localhost:3000/api";
 
-// Tu dirección de Owner (La convertimos a minúsculas de una vez para comparar fácil)
+// TUS DIRECCIONES
 const OWNER_ADDRESS = "0xb17c90BD1BC4fdb4c90b7371CDcEb4D8B1bC68ac".toLowerCase();
-
-// DIRECCIÓN DE TU CONTRATO WALLET (Recuperada de tu deploy anterior)
-const WALLET_ADDRESS = "0xd68Cff7ae20Eb2dF7A61A881E66BE9D084Ceb181";
+// ¡ACTUALIZA ESTA DIRECCIÓN AL TERMINAR EL DEPLOY!
+const WALLET_ADDRESS = "PEGAR_TU_NUEVA_DIRECCION_WALLET_AQUI"; 
 
 function App() {
   const [account, setAccount] = useState(null);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
+  
+  // Formulario
+  const [newName, setNewName] = useState("");
+  const [newPrice, setNewPrice] = useState("");
+  const [newImage, setNewImage] = useState("");
 
-  // 1. Cargar Productos del Backend al iniciar
-  useEffect(() => {
-    fetchProducts();
-  }, []);
+  useEffect(() => { fetchProducts(); }, []);
 
   const fetchProducts = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/product/all`);
-      const data = await response.json();
-      if (data.success) {
-        setProducts(data.products);
-      }
-    } catch (error) {
-      console.error("Error cargando productos:", error);
-    }
+      const res = await fetch(`${API_BASE_URL}/product/all`);
+      const data = await res.json();
+      if (data.success) setProducts(data.products);
+    } catch (e) { console.error(e); }
   };
 
-  // 2. Conectar Wallet
   const connectWallet = async () => {
     if (window.ethereum) {
-      try {
-        const provider = new ethers.BrowserProvider(window.ethereum);
-        const signer = await provider.getSigner();
-        const address = await signer.getAddress();
-        setAccount(address);
-      } catch (error) {
-        console.error("Error conectando wallet:", error);
-      }
-    } else {
-      alert("Instala MetaMask");
-    }
+      // Ethers v5 provider
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      await provider.send("eth_requestAccounts", []);
+      const signer = provider.getSigner();
+      setAccount(await signer.getAddress());
+    } else { alert("Instala MetaMask"); }
   };
 
-  // 3. Comprar Producto
-  const buyProduct = async (product) => {
-    if (!account) return alert("Conecta tu wallet primero");
-    
+  // --- AGREGAR (SOLO OWNER) ---
+  const handleAddProduct = async (e) => {
+    e.preventDefault();
+    if (!account) return;
     try {
         setLoading(true);
+        // Importamos el JSON correcto
+        const ABI = await import('./artifacts/GatitosPaymentMultisig.json');
         
-        // Importamos el ABI
-        // Asegúrate de que este archivo exista en src/artifacts/
-        const WALLET_ABI = await import('./artifacts/MultiSignPaymentWallet.json');
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const signer = provider.getSigner();
+        const contract = new ethers.Contract(WALLET_ADDRESS, ABI.abi, signer);
 
-        const provider = new ethers.BrowserProvider(window.ethereum);
-        const signer = await provider.getSigner();
-        const contract = new ethers.Contract(WALLET_ADDRESS, WALLET_ABI.abi, signer);
-
-        console.log(`Comprando producto ID: ${product.id} por ${product.price} ETH`);
-
-        // Enviamos la transacción
-        const tx = await contract.buyProduct(product.id, { 
-            value: ethers.parseEther(product.price) 
-        });
+        // Llamamos a "agregarGatito" (Tu función en Solidity)
+        const tx = await contract.agregarGatito(
+            newName, 
+            ethers.utils.parseEther(newPrice), // v5 utils
+            newImage
+        );
         
-        console.log("Transacción enviada:", tx.hash);
         await tx.wait();
-        
-        alert("¡Compra exitosa! 😺");
-        fetchProducts(); // Recargar la lista para ver el cambio de estado
+        alert("¡Gatito Agregado!");
+        fetchProducts();
+        setNewName(""); setNewPrice(""); setNewImage("");
+    } catch (error) { 
+        console.error(error); 
+        alert("Error: " + (error.data?.message || error.message)); 
+    } finally { setLoading(false); }
+  };
 
-    } catch (error) {
-        console.error("Error en compra:", error);
-        // Mostramos el error real si es posible, o uno genérico
-        alert("Error en la compra: " + (error.reason || error.message || "Revisa la consola"));
-    } finally {
-        setLoading(false);
-    }
+  // --- COMPRAR (CLIENTES) ---
+  const buyProduct = async (product) => {
+    if (!account) return alert("Conecta Wallet");
+    try {
+        setLoading(true);
+        const ABI = await import('./artifacts/GatitosPaymentMultisig.json');
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const signer = provider.getSigner();
+        const contract = new ethers.Contract(WALLET_ADDRESS, ABI.abi, signer);
+
+        // Llamamos a "comprarGatito" (Tu función en Solidity)
+        const tx = await contract.comprarGatito(product.id, { 
+            value: ethers.utils.parseEther(product.price) 
+        });
+        await tx.wait();
+        alert("¡Compra exitosa!");
+        fetchProducts();
+    } catch (error) { 
+        console.error(error); 
+        alert("Error en compra"); 
+    } finally { setLoading(false); }
   };
 
   return (
-    <div style={{ padding: '20px', textAlign: 'center' }}>
-      <h1>🐱 Tienda de Gatitos Blockchain</h1>
+    <div style={{ padding: '20px', fontFamily: 'Arial', textAlign: 'center' }}>
+      <h1>🐱 Gatitos NFT (Ethers v5)</h1>
       
       {!account ? (
-        <button onClick={connectWallet} style={{padding: '10px', fontSize: '16px'}}>
-            🦊 Conectar Wallet
+        <button onClick={connectWallet} style={{fontSize:'1.2rem', padding:'10px'}}>
+            🦊 Conectar MetaMask
         </button>
       ) : (
-        <p><strong>Cliente:</strong> {account}</p>
+        <div>
+            <p>Conectado: {account.slice(0,6)}...{account.slice(-4)}</p>
+            {account.toLowerCase() === OWNER_ADDRESS && 
+                <span style={{background:'gold', padding:'5px', borderRadius:'5px', fontWeight:'bold'}}>👑 DUEÑO</span>
+            }
+        </div>
       )}
 
-      <div style={{ display: 'flex', gap: '20px', justifyContent: 'center', marginTop: '30px', flexWrap: 'wrap' }}>
-        {products.map((p) => (
-          <div key={p.id} style={{ border: '1px solid #ddd', borderRadius: '10px', padding: '15px', width: '200px', backgroundColor: '#242424' }}>
-            {/* Imagen del gatito */}
-            <img src={`https://placekitten.com/200/20${p.id}`} alt={p.name} style={{borderRadius: '5px'}}/>
-            
-            <h3>{p.name}</h3>
-            <p>Precio: {p.price} ETH</p>
-            <p>Status: {p.active ? "🟢 Disponible" : "🔴 Vendido"}</p>
-            
-            {/* LÓGICA CORREGIDA PARA EL BOTÓN */}
-            {p.active && account && account.toLowerCase() !== OWNER_ADDRESS && (
-                <button 
-                    onClick={() => buyProduct(p)}
-                    disabled={loading}
-                    style={{ background: '#646cff', color: 'white', padding: '8px 16px', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
-                >
-                    {loading ? "Procesando..." : "Comprar"}
+      {/* --- FORMULARIO DE DUEÑO --- */}
+      {account && account.toLowerCase() === OWNER_ADDRESS && (
+        <div style={{margin: '20px auto', padding:'20px', border:'2px solid #646cff', borderRadius:'10px', maxWidth:'400px'}}>
+            <h3>Agregar Nuevo Gatito</h3>
+            <form onSubmit={handleAddProduct} style={{display:'flex', flexDirection:'column', gap:'10px'}}>
+                <input placeholder="Nombre" value={newName} onChange={e=>setNewName(e.target.value)} required />
+                <input placeholder="Precio (ETH)" value={newPrice} onChange={e=>setNewPrice(e.target.value)} required />
+                <input placeholder="URL Imagen" value={newImage} onChange={e=>setNewImage(e.target.value)} required />
+                <button disabled={loading} style={{background:'#646cff', color:'white'}}>
+                    {loading ? "Procesando..." : "Publicar"}
                 </button>
-            )}
+            </form>
+        </div>
+      )}
 
-            {/* MENSAJE PARA EL DUEÑO */}
-            {p.active && account && account.toLowerCase() === OWNER_ADDRESS && (
-                <p style={{color: 'orange', fontWeight: 'bold'}}>👑 Eres el dueño</p>
-            )}
-
-            {/* MENSAJE SI YA SE VENDIÓ */}
-            {!p.active && (
-                <p style={{color: 'gray'}}>No disponible</p>
-            )}
-
-          </div>
+      {/* --- LISTA DE GATITOS --- */}
+      <div style={{display:'flex', gap:'20px', justifyContent:'center', marginTop:'30px', flexWrap:'wrap'}}>
+        {products.map(p => (
+            <div key={p.id} style={{border:'1px solid #ddd', padding:'15px', borderRadius:'10px', width:'220px', background:'#f9f9f9'}}>
+                <img src={p.image.startsWith('http') ? p.image : `https://gateway.pinata.cloud/ipfs/${p.image}`} 
+                     style={{width:'100%', height:'200px', objectFit:'cover', borderRadius:'5px'}} />
+                <h3>{p.name}</h3>
+                <p style={{fontWeight:'bold', fontSize:'1.1rem'}}>{p.price} ETH</p>
+                
+                {p.active ? (
+                    account && account.toLowerCase() !== OWNER_ADDRESS ? 
+                    <button onClick={()=>buyProduct(p)} disabled={loading} style={{background:'green', color:'white', width:'100%'}}>
+                        Comprar
+                    </button> 
+                    : <p style={{color:'gray', fontSize:'0.9rem'}}>{account ? "(Eres el dueño)" : "Conecta Wallet"}</p>
+                ) : (
+                    <p style={{color:'red', fontWeight:'bold'}}>🔴 VENDIDO</p>
+                )}
+            </div>
         ))}
       </div>
     </div>
