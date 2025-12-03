@@ -4,11 +4,11 @@ const productController = require('../controllers/product');
 
 router.post('/add', async (req, res) => {
   try {
-    const { name, price, account } = req.body;
-    const result = await productController.addProduct(name, price, account);
-    res.json({ success: true, message: 'Producto agregado', result });
+    // Ahora esperamos "image" también
+    const { name, price, image, account } = req.body;
+    const result = await productController.addProduct(name, price, image, account);
+    res.json({ success: true, result });
   } catch (error) {
-    console.error('Add product error:', error);
     res.status(500).json({ success: false, message: error.message });
   }
 });

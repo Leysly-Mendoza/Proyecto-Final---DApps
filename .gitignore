@@ -4,6 +4,5 @@ coverage
 coverage.json
 typechain
 typechain-types
-artifacts
 cache
 test-results
