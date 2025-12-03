@@ -6,7 +6,7 @@ const cors = require('cors');
 
 // 1. CORRECCIÓN DE NOMBRES DE ARCHIVOS
 const gatitoWalletRoutes = require('./routes/gatitoWallet');
-const gatitoPagosRoutes = require('./routes/gatitoPagos');
+const gatitoPagosRoutes = require('./routes/gatitoPago');
 const gatitoProductoRoutes = require('./routes/gatitoProducto');
 
 app.use(cors());

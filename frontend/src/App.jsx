@@ -28,7 +28,13 @@ function App() {
       const response = await fetch(`${API_BASE_URL}/product/all`);
       const data = await response.json();
       if (data.success) {
-        setProducts(data.products);
+        // Asumiendo que `active` viene del campo `disponible`
+        setProducts(data.products.map(p => ({
+          ...p,
+          // Convertimos el precio de BigNumber (si viene) a string para mostrar
+          price: ethers.utils.formatEther(p.price || "0").toString(), 
+          active: p.disponible // Mapeamos 'disponible' a 'active'
+        })));
       }
     } catch (error) {
       console.error("Error cargando productos:", error);
@@ -48,7 +54,6 @@ function App() {
   const connectWallet = async () => {
     if (!window.ethereum) return alert("Instala MetaMask");
     try {
-      // Método nativo de MetaMask (funciona siempre)
       const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
       setAccount(accounts[0]);
     } catch (error) {
@@ -63,27 +68,24 @@ function App() {
 
     try {
         setLoading(true);
-        // Importamos el JSON (Asegúrate que el archivo esté en src/artifacts)
+        // OJO: Asegúrate que esta ruta de importación sea correcta:
         const ABI = await import('./artifacts/GatitosPaymentMultisig.json');
         
-        // Sintaxis Ethers v5
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         const signer = provider.getSigner();
         const contract = new ethers.Contract(WALLET_ADDRESS, ABI.abi, signer);
 
-        console.log("Enviando transacción...");
+        console.log("Enviando transacción");
         
-        // Llamamos a la función en español
         const tx = await contract.agregarGatito(
             newName, 
-            ethers.utils.parseEther(newPrice), // v5 usa utils
+            ethers.utils.parseEther(newPrice), 
             newImage
         );
         
         await tx.wait();
         alert("¡Gatito puesto en venta exitosamente!");
         
-        // Limpiar formulario y recargar
         setNewName("");
         setNewPrice("");
         setNewImage("");
@@ -109,7 +111,6 @@ function App() {
         const signer = provider.getSigner();
         const contract = new ethers.Contract(WALLET_ADDRESS, ABI.abi, signer);
 
-        // Llamamos a la función en español
         const tx = await contract.comprarGatito(product.id, { 
             value: ethers.utils.parseEther(product.price) 
         });
@@ -132,19 +133,38 @@ function App() {
   return (
     <div style={{ minHeight: '100vh', padding: '20px', backgroundColor: '#1a1a1a', color: 'white', fontFamily: 'Arial, sans-serif' }}>
       
-      {/* HEADER */}
-      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px', padding: '0 20px' }}>
-        <h1>🐱 Tienda de Gatitos</h1>
+      {}
+      <header style={{ 
+        display: 'flex', 
+        flexDirection: 'column', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        marginBottom: '40px', 
+        padding: '0 20px',
+        textAlign: 'center' 
+      }}>
+        <h1 style={{ marginBottom: account ? '10px' : '20px' }}>🐱 Tienda de Gatitos</h1>
+        
+        {/* INFO DE LA CUENTA O BOTÓN DE CONEXIÓN */}
         {!account ? (
-            <button onClick={connectWallet} style={{ padding: '10px 20px', fontSize: '16px', cursor: 'pointer', background: '#f6851b', border: 'none', borderRadius: '5px', color: 'white' }}>
-                🦊 Conectar Wallet
+            <button onClick={connectWallet} disabled={loading} style={{ 
+              padding: '10px 20px', 
+              fontSize: '16px', 
+              cursor: 'pointer', 
+              background: '#f6851b', 
+              border: 'none', 
+              borderRadius: '5px', 
+              color: 'white',
+              marginTop: '10px' // Espacio después del título
+            }}>
+                Conectar Wallet
             </button>
         ) : (
-            <div style={{ textAlign: 'right' }}>
-                <p style={{ margin: 0 }}>Conectado: <span style={{ color: '#646cff' }}>{account.slice(0,6)}...{account.slice(-4)}</span></p>
+            <div style={{ textAlign: 'center' }}>
+                <p style={{ margin: '5px 0' }}>Conectado: <span style={{ color: '#646cff' }}>{account.slice(0,6)}...{account.slice(-4)}</span></p>
                 {isOwner ? 
-                    <span style={{ background: 'gold', color: 'black', padding: '2px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold' }}>👑 DUEÑO (VENDEDOR)</span> : 
-                    <span style={{ background: '#4CAF50', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold' }}>👤 CLIENTE</span>
+                    <span style={{ background: 'gold', color: 'black', padding: '2px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold' }}> DUEÑO (VENDEDOR)</span> : 
+                    <span style={{ background: '#4CAF50', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold' }}> CLIENTE</span>
                 }
             </div>
         )}
@@ -153,7 +173,7 @@ function App() {
       {/* --- FORMULARIO PARA EL DUEÑO (AGREGAR/VENDER) --- */}
       {isOwner && (
         <div style={{ maxWidth: '500px', margin: '0 auto 50px auto', padding: '20px', border: '1px solid #444', borderRadius: '10px', backgroundColor: '#2a2a2a' }}>
-            <h2 style={{ marginTop: 0, textAlign: 'center', color: 'gold' }}>📦 Vender Nuevo Gatito</h2>
+            <h2 style={{ marginTop: 0, textAlign: 'center', color: 'gold' }}> Vender Nuevo Gatito</h2>
             <form onSubmit={handleAddProduct} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                 <input 
                     placeholder="Nombre del Gatito" 
@@ -177,7 +197,7 @@ function App() {
                     required 
                 />
                 <button type="submit" disabled={loading} style={{ padding: '12px', background: 'gold', color: 'black', border: 'none', borderRadius: '5px', fontWeight: 'bold', cursor: 'pointer' }}>
-                    {loading ? "Procesando en Blockchain..." : "✨ Poner en Venta"}
+                    {loading ? "Procesando en Blockchain..." : "Poner en Venta"}
                 </button>
             </form>
         </div>
@@ -186,7 +206,7 @@ function App() {
       {/* --- CATÁLOGO DE PRODUCTOS --- */}
       <h2 style={{ textAlign: 'center', marginBottom: '20px' }}>Galería de Gatitos</h2>
       
-      {products.length === 0 && <p style={{textAlign: 'center', color: 'gray'}}>No hay gatitos en venta aún.</p>}
+      {products.length === 0 && <p style={{textAlign: 'center', color: 'gray'}}>No hay gatitos en venta</p>}
 
       <div style={{ display: 'flex', gap: '20px', justifyContent: 'center', flexWrap: 'wrap' }}>
         {products.map((p) => (
@@ -207,7 +227,7 @@ function App() {
                 // Si está disponible...
                 isOwner ? (
                     <button disabled style={{ marginTop: '10px', padding: '10px', width: '100%', background: '#333', color: 'gold', border: '1px solid gold', borderRadius: '5px', cursor: 'not-allowed' }}>
-                        👑 Tu producto (En Venta)
+                        Tu producto (En Venta)
                     </button>
                 ) : (
                     <button 
@@ -221,7 +241,7 @@ function App() {
             ) : (
                 // Si NO está disponible (Vendido)
                 <button disabled style={{ marginTop: '10px', padding: '10px', width: '100%', background: '#333', color: 'red', border: '1px solid red', borderRadius: '5px', cursor: 'not-allowed' }}>
-                    🔴 VENDIDO
+                    VENDIDO
                 </button>
             )}
 
