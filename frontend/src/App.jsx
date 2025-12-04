@@ -17,6 +17,8 @@ function App() {
   const [newName, setNewName] = useState("");
   const [newPrice, setNewPrice] = useState("");
   const [newImage, setNewImage] = useState("");
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     fetchProducts();
@@ -62,34 +64,83 @@ function App() {
     }
   };
 
-  // --- 2. AGREGAR GATITO (SOLO OWNER) ---
+  // --- 2. SUBIR IMAGEN A PINATA ---
+  const uploadToPinata = async (file) => {
+    if (!file) return null;
+
+    setUploading(true);
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const response = await fetch('https://api.pinata.cloud/pinning/pinFileToIPFS', {
+        method: 'POST',
+        headers: {
+          'pinata_api_key': '3f25c320f5a03385abc2',
+          'pinata_secret_api_key': '9efa27c62cee4abe30910f0c2b245ef281b95fcbcf8ec7456068260bf72b2863'
+        },
+        body: formData
+      });
+
+      const data = await response.json();
+      setUploading(false);
+
+      if (data.IpfsHash) {
+        return data.IpfsHash; // Retorna el hash IPFS
+      } else {
+        throw new Error('Error subiendo a Pinata');
+      }
+    } catch (error) {
+      setUploading(false);
+      console.error('Error en Pinata:', error);
+      throw error;
+    }
+  };
+
+  // --- 3. AGREGAR GATITO (SOLO OWNER) - Ahora con Pinata ---
   const handleAddProduct = async (e) => {
     e.preventDefault();
     if (!account) return;
 
+    // Validar que haya imagen seleccionada
+    if (!selectedFile && !newImage) {
+      alert("Por favor selecciona una imagen o ingresa una URL");
+      return;
+    }
+
     try {
         setLoading(true);
+
+        // Si hay archivo seleccionado, subirlo a Pinata primero
+        let ipfsHash = newImage;
+        if (selectedFile) {
+          console.log("📤 Subiendo imagen a Pinata...");
+          ipfsHash = await uploadToPinata(selectedFile);
+          console.log("✅ Imagen subida a IPFS:", ipfsHash);
+        }
+
         // OJO: Asegúrate que esta ruta de importación sea correcta:
         const ABI = await import('./artifacts/GatitosPaymentMultisig.json');
-        
+
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         const signer = provider.getSigner();
         const contract = new ethers.Contract(WALLET_ADDRESS, ABI.abi, signer);
 
-        console.log("Enviando transacción");
-        
+        console.log("📝 Enviando transacción para agregar gatito...");
+
         const tx = await contract.agregarGatito(
-            newName, 
-            ethers.utils.parseEther(newPrice), 
-            newImage
+            newName,
+            ethers.utils.parseEther(newPrice),
+            ipfsHash // Usar el hash IPFS
         );
-        
+
         await tx.wait();
-        alert("¡Gatito puesto en venta exitosamente!");
-        
+        alert("¡Gatito puesto en venta exitosamente! 🐱");
+
         setNewName("");
         setNewPrice("");
         setNewImage("");
+        setSelectedFile(null);
         fetchProducts();
 
     } catch (error) {
@@ -100,24 +151,49 @@ function App() {
     }
   };
 
-  // --- 3. COMPRAR GATITO (CLIENTES) ---
+  // --- 3. COMPRAR GATITO (CLIENTES) - Usando los 3 contratos ---
   const buyProduct = async (product) => {
     if (!account) return alert("Conecta tu wallet primero");
-    
+
     try {
         setLoading(true);
-        const ABI = await import('./artifacts/GatitosPaymentMultisig.json');
-        
+
+        console.log("🛒 Iniciando compra usando los 3 contratos...");
+
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         const signer = provider.getSigner();
-        const contract = new ethers.Contract(WALLET_ADDRESS, ABI.abi, signer);
 
-        const tx = await contract.comprarGatito(product.id, { 
-            value: ethers.utils.parseEther(product.price) 
+        // Cargar ABIs de los 3 contratos
+        const WalletABI = await import('./artifacts/GatitosPaymentMultisig.json');
+        const PagosABI = await import('./artifacts/PagosGatitos.json');
+
+        const PAGOS_ADDRESS = "0x80c8a61532aC59e3Caa9b57C1C79709D53cb3E59";
+
+        const walletContract = new ethers.Contract(WALLET_ADDRESS, WalletABI.abi, signer);
+        const pagosContract = new ethers.Contract(PAGOS_ADDRESS, PagosABI.abi, signer);
+
+        const priceWei = ethers.utils.parseEther(product.price);
+
+        // PASO 1: Comprar en el contrato Wallet
+        console.log("📝 PASO 1: Registrando compra en GatitosPaymentMultisig...");
+        const tx1 = await walletContract.comprarGatito(product.id, {
+            value: priceWei
         });
-        
-        await tx.wait();
-        alert("¡Compra exitosa! El gatito es tuyo.");
+        await tx1.wait();
+        console.log("✅ Compra registrada");
+
+        // PASO 2: Enviar pago al contrato PagosGatitos
+        console.log("📝 PASO 2: Enviando pago a PagosGatitos...");
+        const tx2 = await pagosContract.pagarGatito({
+            value: priceWei
+        });
+        await tx2.wait();
+        console.log("✅ Pago enviado a PagosGatitos");
+
+        // PASO 3: NFT se transferiría automáticamente (si está configurado)
+        console.log("📝 PASO 3: NFT listo para transferencia");
+
+        alert("¡Compra exitosa! 🎉\n\n✅ Compra registrada\n✅ Pago enviado a PagosGatitos\n\nEl gatito es tuyo.");
         fetchProducts();
 
     } catch (error) {
@@ -174,31 +250,49 @@ function App() {
       {/* --- FORMULARIO PARA EL DUEÑO (AGREGAR/VENDER) --- */}
       {isOwner && (
         <div style={{ maxWidth: '500px', margin: '0 auto 50px auto', padding: '20px', border: '1px solid #444', borderRadius: '10px', backgroundColor: '#2a2a2a' }}>
-            <h2 style={{ marginTop: 0, textAlign: 'center', color: 'gold' }}> Vender Nuevo Gatito</h2>
+            <h2 style={{ marginTop: 0, textAlign: 'center', color: 'gold' }}>🐱 Vender Nuevo Gatito (Con NFT)</h2>
             <form onSubmit={handleAddProduct} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                <input 
-                    placeholder="Nombre del Gatito" 
-                    value={newName} 
-                    onChange={e => setNewName(e.target.value)} 
+                <input
+                    placeholder="Nombre del Gatito"
+                    value={newName}
+                    onChange={e => setNewName(e.target.value)}
                     style={{ padding: '10px', borderRadius: '5px', border: '1px solid #555', backgroundColor: '#333', color: 'white' }}
-                    required 
+                    required
                 />
-                <input 
-                    placeholder="Precio en ETH (ej: 0.001)" 
-                    value={newPrice} 
-                    onChange={e => setNewPrice(e.target.value)} 
+                <input
+                    placeholder="Precio en ETH (ej: 0.001)"
+                    value={newPrice}
+                    onChange={e => setNewPrice(e.target.value)}
                     style={{ padding: '10px', borderRadius: '5px', border: '1px solid #555', backgroundColor: '#333', color: 'white' }}
-                    required 
+                    required
                 />
-                <input 
-                    placeholder="URL de la Imagen (Pinata)" 
-                    value={newImage} 
-                    onChange={e => setNewImage(e.target.value)} 
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    <label style={{ color: '#aaa', fontSize: '14px' }}>📸 Selecciona una imagen:</label>
+                    <input
+                        type="file"
+                        accept="image/*"
+                        onChange={e => setSelectedFile(e.target.files[0])}
+                        style={{ padding: '10px', borderRadius: '5px', border: '1px solid #555', backgroundColor: '#333', color: 'white' }}
+                    />
+                    {selectedFile && (
+                        <p style={{ color: '#4CAF50', fontSize: '12px', margin: 0 }}>
+                            ✅ Archivo seleccionado: {selectedFile.name}
+                        </p>
+                    )}
+                </div>
+
+                <div style={{ textAlign: 'center', color: '#888', fontSize: '12px' }}>- O -</div>
+
+                <input
+                    placeholder="URL de IPFS (opcional si subes archivo)"
+                    value={newImage}
+                    onChange={e => setNewImage(e.target.value)}
                     style={{ padding: '10px', borderRadius: '5px', border: '1px solid #555', backgroundColor: '#333', color: 'white' }}
-                    required 
                 />
-                <button type="submit" disabled={loading} style={{ padding: '12px', background: 'gold', color: 'black', border: 'none', borderRadius: '5px', fontWeight: 'bold', cursor: 'pointer' }}>
-                    {loading ? "Procesando en Blockchain..." : "Poner en Venta"}
+
+                <button type="submit" disabled={loading || uploading} style={{ padding: '12px', background: (loading || uploading) ? '#666' : 'gold', color: 'black', border: 'none', borderRadius: '5px', fontWeight: 'bold', cursor: (loading || uploading) ? 'not-allowed' : 'pointer' }}>
+                    {uploading ? "📤 Subiendo a IPFS..." : loading ? "⛓️ Procesando en Blockchain..." : "🚀 Poner en Venta (NFT)"}
                 </button>
             </form>
         </div>
