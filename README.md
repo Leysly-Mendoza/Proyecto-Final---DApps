@@ -613,7 +613,7 @@ PROYECTO FINAL - DAPPS/
 netstat -ano | findstr :3000
 
 # Reiniciar
-node indexP.js
+node index.js
 ```
 
 ---
