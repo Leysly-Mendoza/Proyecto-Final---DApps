@@ -161,7 +161,7 @@ function App() {
         console.log("Compra completada");
         console.log("El owner puede repartir fondos cuando quiera");
 
-        alert("¡Compra exitosa! 🎉\n\nGatito comprado\nNFT ya fue minteado\n\nEl gatito es tuyo.");
+        alert("¡Compra exitosa! \n\nGatito comprado\nNFT ya fue minteado\n\nEl gatito es tuyo.");
         fetchProducts();
 
     } catch (error) {
