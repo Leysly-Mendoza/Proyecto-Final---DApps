@@ -1,0 +1,348 @@
+{
+	"info": {
+		"_postman_id": "gatitos-nft-marketplace-2024",
+		"name": "Gatitos NFT - Marketplace API",
+		"description": "Colección completa de endpoints para el marketplace de Gatitos NFT en Ethereum Sepolia.\n\n**Contratos:**\n- GatitoNFT: `0x7922f608BbDD148ac2587c7ec2953b73A512078F`\n- GatitosPaymentMultisig: `0xe1F30Da6B24CE7C6e19e317970E1780f852efB76`\n\n**Cuentas disponibles:**\n- Cuenta 0: `0xb17c90BD1BC4fdb4c90b7371CDcEb4D8B1bC68ac`\n- Cuenta 1: `0xB32A8EBb8a5c0A77feA3f82186E6aaB48A93215B`",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Marketplace - Productos",
+			"item": [
+				{
+					"name": "1. Obtener Todos los Gatitos",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:3000/api/product/todos",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"product",
+								"todos"
+							]
+						},
+						"description": "Lista todos los gatitos disponibles y vendidos en el marketplace.\n\n**Respuesta esperada:**\n```json\n{\n  \"success\": true,\n  \"gatitos\": [\n    {\n      \"id\": \"0\",\n      \"nombre\": \"Gatito Naranja\",\n      \"precioEth\": \"0.001\",\n      \"imagen\": \"https://gateway.pinata.cloud/ipfs/Qm...\",\n      \"criador\": \"0xb17c90BD1BC4fdb4c90b7371CDcEb4D8B1bC68ac\",\n      \"disponible\": true\n    }\n  ]\n}\n```"
+					},
+					"response": []
+				},
+				{
+					"name": "2. Agregar Gatito",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nombre\": \"Gatito Naranja\",\n  \"precio\": \"0.001\",\n  \"imagen\": \"QmaQv1omVDe82326B74YSes16dyN145rPEwPD1PbUkcGDQ\",\n  \"cuenta\": \"0\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/product/agregar",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"product",
+								"agregar"
+							]
+						},
+						"description": "Agrega un nuevo gatito al marketplace.\n\n**Proceso:**\n1. Mintea un NFT en GatitoNFT\n2. Registra el gatito en GatitosPaymentMultisig\n\n**Parámetros:**\n- `nombre`: Nombre del gatito\n- `precio`: Precio en ETH (string)\n- `imagen`: Hash IPFS de la imagen (sin URL completa)\n- `cuenta`: **IMPORTANTE** - Usar índice numérico (\"0\" o \"1\"), NO dirección\n\n**NOTA:** Solo cuentas configuradas como \"cuidadores\" pueden agregar gatitos."
+					},
+					"response": []
+				},
+				{
+					"name": "3. Comprar Gatito",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"gatitoId\": 0,\n  \"cuenta\": \"1\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/product/comprar",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"product",
+								"comprar"
+							]
+						},
+						"description": "Compra un gatito del marketplace.\n\n**Proceso:**\n1. Valida que el gatito esté disponible\n2. Transfiere ETH al contrato GatitosPaymentMultisig\n3. Marca el gatito como vendido\n4. Acumula fondos para repartir después\n\n**Parámetros:**\n- `gatitoId`: ID del gatito a comprar (número)\n- `cuenta`: Índice de la cuenta compradora (\"0\" o \"1\")\n\n**NOTA:** El precio se paga automáticamente según el precio configurado del gatito."
+					},
+					"response": []
+				},
+				{
+					"name": "4. Deshabilitar Gatito",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"gatitoId\": 0,\n  \"cuenta\": \"0\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/product/deshabilitar",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"product",
+								"deshabilitar"
+							]
+						},
+						"description": "Deshabilita un gatito para que no esté disponible en el marketplace.\n\n**Parámetros:**\n- `gatitoId`: ID del gatito a deshabilitar\n- `cuenta`: Índice de cuenta (debe ser cuidador)\n\n**NOTA:** Solo cuidadores pueden deshabilitar gatitos."
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints relacionados con el marketplace de gatitos NFT."
+		},
+		{
+			"name": "Wallet - Administración",
+			"item": [
+				{
+					"name": "5. Ver Balance del Wallet",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:3000/api/wallet/balance",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"wallet",
+								"balance"
+							]
+						},
+						"description": "Consulta el balance actual del contrato GatitosPaymentMultisig.\n\n**Respuesta esperada:**\n```json\n{\n  \"success\": true,\n  \"balance\": \"0.003\"\n}\n```\n\n**Uso:** Verificar fondos acumulados antes de repartir."
+					},
+					"response": []
+				},
+				{
+					"name": "6. Repartir Fondos a Criadores",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"cuenta\": \"0\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/wallet/repartir-fondos",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"wallet",
+								"repartir-fondos"
+							]
+						},
+						"description": "Distribuye el balance del contrato entre los criadores según sus porcentajes.\n\n**Proceso:**\n1. Calcula el balance total del contrato\n2. Divide según porcentajes configurados (50/50 por defecto)\n3. Envía ETH a cada criador\n\n**Parámetros:**\n- `cuenta`: Índice de cuenta (debe ser cuidador)\n\n**IMPORTANTE:**\n- Solo cuidadores pueden ejecutar esto\n- Debe haber fondos disponibles (hacer compras primero)\n- Se emiten eventos `PagoLiberado` por cada pago"
+					},
+					"response": []
+				},
+				{
+					"name": "7. Ver Transacciones Multisig",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:3000/api/wallet/transacciones",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"wallet",
+								"transacciones"
+							]
+						},
+						"description": "Lista todas las transacciones multisig creadas.\n\n**Respuesta esperada:**\n```json\n{\n  \"success\": true,\n  \"transacciones\": [\n    {\n      \"id\": \"0\",\n      \"destino\": \"0xB32A8EBb8a5c0A77feA3f82186E6aaB48A93215B\",\n      \"monto\": \"0.001\",\n      \"firmas\": \"1\",\n      \"ejecutada\": false\n    }\n  ]\n}\n```"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints para administración de fondos y sistema multisig."
+		},
+		{
+			"name": "Multisig - Transacciones",
+			"item": [
+				{
+					"name": "8. Crear Transacción Multisig",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"destino\": \"0xB32A8EBb8a5c0A77feA3f82186E6aaB48A93215B\",\n  \"monto\": \"0.001\",\n  \"cuenta\": \"0\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/wallet/crear-transaccion",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"wallet",
+								"crear-transaccion"
+							]
+						},
+						"description": "Propone una transacción de retiro de fondos que requiere aprobación multisig.\n\n**Parámetros:**\n- `destino`: Dirección que recibirá los fondos\n- `monto`: Cantidad en ETH a transferir\n- `cuenta`: Índice de cuenta del proponente (debe ser cuidador)\n\n**Proceso:**\n1. Cuidador propone transacción\n2. Otros cuidadores firman\n3. Al alcanzar firmas requeridas, se puede ejecutar"
+					},
+					"response": []
+				},
+				{
+					"name": "9. Firmar Transacción",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"txId\": 0,\n  \"cuenta\": \"1\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/wallet/firmar",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"wallet",
+								"firmar"
+							]
+						},
+						"description": "Firma una transacción multisig previamente creada.\n\n**Parámetros:**\n- `txId`: ID de la transacción a firmar\n- `cuenta`: Índice de cuenta del firmante (debe ser cuidador)\n\n**NOTA:**\n- No puedes firmar dos veces la misma transacción\n- Solo cuidadores pueden firmar"
+					},
+					"response": []
+				},
+				{
+					"name": "10. Ejecutar Transacción",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"txId\": 0,\n  \"cuenta\": \"0\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/wallet/ejecutar",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"wallet",
+								"ejecutar"
+							]
+						},
+						"description": "Ejecuta una transacción multisig que ya tiene las firmas requeridas.\n\n**Parámetros:**\n- `txId`: ID de la transacción a ejecutar\n- `cuenta`: Índice de cuenta del ejecutor (debe ser cuidador)\n\n**Requisitos:**\n- La transacción debe tener suficientes firmas\n- No puede haber sido ejecutada previamente\n- El contrato debe tener fondos suficientes"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints para gestión de transacciones multifirma."
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:3000",
+			"type": "string"
+		},
+		{
+			"key": "cuenta_0",
+			"value": "0",
+			"type": "string"
+		},
+		{
+			"key": "cuenta_1",
+			"value": "1",
+			"type": "string"
+		}
+	]
+}
