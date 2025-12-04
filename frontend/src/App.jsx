@@ -25,15 +25,16 @@ function App() {
 
   const fetchProducts = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/product/all`);
+      const response = await fetch(`${API_BASE_URL}/product/todos`);
       const data = await response.json();
       if (data.success) {
-        // Asumiendo que `active` viene del campo `disponible`
-        setProducts(data.products.map(p => ({
-          ...p,
-          // Convertimos el precio de BigNumber (si viene) a string para mostrar
-          price: ethers.utils.formatEther(p.price || "0").toString(), 
-          active: p.disponible // Mapeamos 'disponible' a 'active'
+        // Mapear los campos del backend al formato del frontend
+        setProducts(data.gatitos.map(g => ({
+          id: g.id,
+          name: g.nombre,
+          price: g.precioEth, // Ya viene formateado en ETH desde el backend
+          image: g.imagen,
+          active: g.disponible
         })));
       }
     } catch (error) {
