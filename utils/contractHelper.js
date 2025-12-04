@@ -11,13 +11,10 @@ async function createTransaction(contractAddress, abi, method, params, accountIn
   }
 
   try {
-    // Sintaxis dinámica para llamar funciones
     const tx = await contract[method](...params, txOptions);
-    
     console.log(`Enviando transacción ${method}... Hash: ${tx.hash}`);
-    await tx.wait(); // En v5 también existe .wait()
+    await tx.wait();
     console.log(`Transacción confirmada.`);
-    
     return tx;
   } catch (error) {
     console.error(`Error en createTransaction (${method}):`, error.message);
@@ -28,8 +25,6 @@ async function createTransaction(contractAddress, abi, method, params, accountIn
 async function depositToContract(contractAddress, abi, amount, accountIndex) {
   const wallet = getWallet(accountIndex);
   const contract = new ethers.Contract(contractAddress, abi, wallet);
-  
-  // CAMBIO PARA V5: ethers.utils.parseEther
   const tx = await contract.deposit({ value: ethers.utils.parseEther(amount.toString()) });
   console.log("Deposito realizado:", tx.hash);
   await tx.wait();

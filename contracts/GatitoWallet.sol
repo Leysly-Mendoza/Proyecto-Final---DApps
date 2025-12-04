@@ -3,17 +3,13 @@ pragma solidity ^0.8.0;
 
 contract GatitosPaymentMultisig {
 
-    // --- VARIABLES DE MULTI-FIRMA ---
     address[] public cuidadores;  
     mapping(address => bool) public esCuidador;
     uint public firmasRequeridas;
 
-    // --- VARIABLES DE PAGO PARA CRIADORES DE GATITOS ---
     address[] public criadores;
     mapping(address => uint256) public porcentajeGatitos;
     uint256 public totalPorcentajes;
-
-    // --- TRANSACCIONES MULTISIG ---
     struct TransaccionGatito {
         uint id;
         address destino;
@@ -24,7 +20,6 @@ contract GatitosPaymentMultisig {
 
     TransaccionGatito[] public transacciones;
     uint public nextTxId;
-
     mapping(uint => mapping(address => bool)) public firmo;
 
     struct FirmaInfo {
@@ -32,13 +27,11 @@ contract GatitosPaymentMultisig {
         uint timestamp;
     }
     mapping(uint => FirmaInfo[]) public historialFirmas;
-
-    // --- GATITOS EN VENTA ---
     struct Gatito {
         uint id;
         string nombre;
         uint precio;
-        string imagen;   // URL/IPFS del gatito
+        string imagen; 
         address criador;
         bool disponible;
     }
@@ -46,8 +39,6 @@ contract GatitosPaymentMultisig {
     uint public nextGatitoId;
     mapping(uint => Gatito) public gatitos;
     mapping(address => uint[]) public misGatitosComprados;
-
-    // --- REENTRANCY ---
     uint256 private _estado;
     modifier nonReentrant() {
         require(_estado != 2, "Reentrancy detectado");
@@ -56,7 +47,6 @@ contract GatitosPaymentMultisig {
         _estado = 1;
     }
 
-    // --- EVENTOS ---
     event GatitoAgregado(uint id, string nombre, uint precio, string imagen, address criador);
     event GatitoComprado(uint id, address comprador, uint precio);
     event Deposito(address remitente, uint cantidad);
@@ -70,8 +60,6 @@ contract GatitosPaymentMultisig {
         require(esCuidador[msg.sender], "No autorizado");
         _;
     }
-
-    // --- CONSTRUCTOR ---
     constructor(
         address[] memory _cuidadores,
         uint _firmasRequeridas,
@@ -91,7 +79,6 @@ contract GatitosPaymentMultisig {
 
         firmasRequeridas = _firmasRequeridas;
 
-        // Criadores de gatitos
         require(_criadores.length == _porcentajes.length, "Listas no coinciden");
 
         for (uint i = 0; i < _criadores.length; i++) {
@@ -100,10 +87,6 @@ contract GatitosPaymentMultisig {
             totalPorcentajes += _porcentajes[i];
         }
     }
-
-    // -----------------------------
-    //   SECCIÓN DE GATITOS (VENTA)
-    // -----------------------------
 
     function agregarGatito(string memory _nombre, uint _precio, string memory _imagen)
         external soloCuidador
@@ -145,10 +128,6 @@ contract GatitosPaymentMultisig {
         }
         return arr;
     }
-
-    // -----------------------------
-    //   SISTEMA MULTISIG
-    // -----------------------------
 
     function crearTransaccion(address _destino, uint _monto) external soloCuidador {
         require(_destino != address(0));
@@ -196,10 +175,6 @@ contract GatitosPaymentMultisig {
 
         emit TxEjecutada(_txId, tx.destino, tx.monto);
     }
-
-    // -----------------------------
-    //   REPARTO DE PAGOS
-    // -----------------------------
 
     function repartirFondos() external soloCuidador nonReentrant {
         uint256 balance = address(this).balance;

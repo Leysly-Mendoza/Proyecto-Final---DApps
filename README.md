@@ -1,10 +1,10 @@
-# 🐱 Proyecto Final - DApps: Marketplace de Gatitos NFT
+# Proyecto Final - DApps: Marketplace de Gatitos NFT
 
 Aplicación Web3 completa para comprar y vender gatitos virtuales como NFTs en la red Ethereum Sepolia.
 
 ---
 
-## 📋 Tabla de Contenidos
+## Tabla de Contenidos
 
 - [Características](#características)
 - [Tecnologías Utilizadas](#tecnologías-utilizadas)
@@ -18,7 +18,7 @@ Aplicación Web3 completa para comprar y vender gatitos virtuales como NFTs en l
 
 ---
 
-## ✨ Características
+## Características
 
 - **NFTs ERC-721**: Cada gatito es un token no fungible único
 - **Marketplace Descentralizado**: Compra y venta de gatitos en blockchain
@@ -29,7 +29,7 @@ Aplicación Web3 completa para comprar y vender gatitos virtuales como NFTs en l
 
 ---
 
-## 🛠️ Tecnologías Utilizadas
+## Tecnologías Utilizadas
 
 ### Backend
 - **Node.js** + **Express.js**: Servidor API REST
@@ -52,7 +52,7 @@ Aplicación Web3 completa para comprar y vender gatitos virtuales como NFTs en l
 
 ---
 
-## 🏗️ Arquitectura del Proyecto
+## Arquitectura del Proyecto
 
 ```
 Usuario
@@ -71,9 +71,9 @@ Blockchain (Sepolia)
 
 ---
 
-## 📜 Contratos Inteligentes
+## Contratos Inteligentes
 
-### 1. **GatitoNFT** 🎨
+### 1. **GatitoNFT** 
 
 **Dirección**: `0x7922f608BbDD148ac2587c7ec2953b73A512078F`
 
@@ -88,14 +88,14 @@ Blockchain (Sepolia)
 | `setBaseURI()` | `string baseUri` | Define URI base (opcional) |
 
 **Características**:
-- ✅ Estándar ERC-721 (compatible con OpenSea, Rarible, etc.)
-- ✅ Contador incremental automático de IDs
-- ✅ Metadata IPFS por token
-- ✅ Ownership controlado por OpenZeppelin
+- Estándar ERC-721 (compatible con OpenSea, Rarible, etc.)
+- Contador incremental automático de IDs
+- Metadata IPFS por token
+- Ownership controlado por OpenZeppelin
 
 ---
 
-### 2. **GatitosPaymentMultisig** 💰
+### 2. **GatitosPaymentMultisig** 
 
 **Dirección**: `0xe1F30Da6B24CE7C6e19e317970E1780f852efB76`
 
@@ -129,14 +129,14 @@ Blockchain (Sepolia)
 | `verBalance()` | Consulta balance del contrato |
 
 **Características**:
-- ✅ ReentrancyGuard para prevenir ataques
-- ✅ Sistema de porcentajes para distribución justa
-- ✅ Eventos emitidos para tracking
-- ✅ Control de acceso basado en roles
+- ReentrancyGuard para prevenir ataques
+- Sistema de porcentajes para distribución justa
+- Eventos emitidos para tracking
+- Control de acceso basado en roles
 
 ---
 
-## ⚙️ Configuración e Instalación
+## Configuración e Instalación
 
 ### Prerrequisitos
 
@@ -199,7 +199,7 @@ El frontend correrá en `http://localhost:5173`
 
 ---
 
-## 🌐 API Endpoints
+## API Endpoints
 
 ### Base URL
 ```
@@ -208,7 +208,7 @@ http://localhost:3000
 
 ---
 
-### **📦 Marketplace de Productos**
+### **Marketplace de Productos**
 
 #### 1. Agregar Gatito
 ```http
@@ -303,7 +303,7 @@ POST /api/product/deshabilitar
 
 ---
 
-### **💼 Wallet y Administración**
+### **Wallet y Administración**
 
 #### 5. Ver Balance del Wallet
 ```http
@@ -405,10 +405,10 @@ GET /api/wallet/transacciones
 
 ---
 
-## 📝 Scripts Disponibles
+## Scripts Disponibles
 
 ### `deploy.js`
-Despliega los 3 contratos en la blockchain.
+Despliega los 2 contratos en la blockchain.
 
 ```bash
 npx hardhat run scripts/deploy.js --network sepolia
@@ -429,19 +429,19 @@ node scripts/repartirFondosWallet.js
 
 **Salida**:
 ```
-🚀 Iniciando reparto de fondos desde el Wallet...
-📍 Usando cuenta: 0xb17c90BD1BC4fdb4c90b7371CDcEb4D8B1bC68ac
-💰 Balance actual del Wallet: 0.003 ETH
+Iniciando reparto de fondos desde el Wallet...
+Usando cuenta: 0xb17c90BD1BC4fdb4c90b7371CDcEb4D8B1bC68ac
+Balance actual del Wallet: 0.003 ETH
 
-👥 Criadores que recibirán pagos:
-   1. 0xb17c90BD1BC4fdb4c90b7371CDcEb4D8B1bC68ac - 50.00%
-   2. 0xB32A8EBb8a5c0A77feA3f82186E6aaB48A93215B - 50.00%
+ Criadores que recibirán pagos:
+   1. 0xb17c90BD1BC4fdb4c90b7371CDcEb4D8B1bC68ac - 80.00%
+   2. 0xB32A8EBb8a5c0A77feA3f82186E6aaB48A93215B - 20.00%
 
-💸 Pagos realizados:
+Pagos realizados:
    1. 0xb17c90BD1BC4fdb4c90b7371CDcEb4D8B1bC68ac recibió 0.0015 ETH
    2. 0xB32A8EBb8a5c0A77feA3f82186E6aaB48A93215B recibió 0.0015 ETH
 
-🎉 ¡Fondos repartidos exitosamente desde el Wallet!
+¡Fondos repartidos exitosamente desde el Wallet!
 ```
 
 ---
@@ -464,7 +464,7 @@ node scripts/nfts.js
 
 ---
 
-## 📮 Uso con Postman
+## Uso con Postman
 
 ### Importar la Colección
 
@@ -492,7 +492,7 @@ Puedes crear variables en Postman:
 
 ---
 
-## 📂 Estructura del Proyecto
+## Estructura del Proyecto
 
 ```
 PROYECTO FINAL - DAPPS/
@@ -529,35 +529,35 @@ PROYECTO FINAL - DAPPS/
 
 ---
 
-## 🎓 Cumplimiento de Requisitos del Proyecto
+## Cumplimiento de Requisitos del Proyecto
 
 | Requisito | Estado |
 |-----------|--------|
-| ✅ Utilizar red Ethereum Sepolia | CUMPLE |
-| ✅ Crear aplicación con propósito | CUMPLE (Marketplace NFT) |
-| ✅ Usar más de un contrato | CUMPLE (GatitoNFT + GatitosPaymentMultisig) |
-| ✅ Backend que se comunique con contratos | CUMPLE (Express + ethers.js) |
-| ✅ Frontend para interactuar | CUMPLE (React + MetaMask) |
-| ✅ Cualquier lenguaje/framework | CUMPLE (Node, React, Solidity) |
+| Utilizar red Ethereum Sepolia | CUMPLE |
+| Crear aplicación con propósito | CUMPLE (Marketplace NFT) |
+| Usar más de un contrato | CUMPLE (GatitoNFT + GatitosPaymentMultisig) |
+| Backend que se comunique con contratos | CUMPLE (Express + ethers.js) |
+| Frontend para interactuar | CUMPLE (React + MetaMask) |
+| Cualquier lenguaje/framework | CUMPLE (Node, React, Solidity) |
 
 ---
 
-## 🔐 Seguridad
+## Seguridad
 
 ### Contratos
-- ✅ ReentrancyGuard implementado
-- ✅ Control de acceso con modificadores
-- ✅ OpenZeppelin audited contracts
-- ✅ Require statements para validaciones
+- ReentrancyGuard implementado
+- Control de acceso con modificadores
+- OpenZeppelin audited contracts
+- Require statements para validaciones
 
 ### Backend
-- ⚠️ **IMPORTANTE**: Nunca subas el archivo `.env` a Git
-- ⚠️ Las `PRIVATE_KEYS` son solo para desarrollo local
-- ⚠️ En producción, usa servicios como AWS Secrets Manager
+- **IMPORTANTE**: Nunca subas el archivo `.env` a Git
+- Las `PRIVATE_KEYS` son solo para desarrollo local
+- En producción, usa servicios como AWS Secrets Manager
 
 ---
 
-## 📊 Flujo de Compra Completo
+## Flujo de Compra Completo
 
 ```
 1. Usuario agrega gatito desde frontend
@@ -583,7 +583,7 @@ PROYECTO FINAL - DAPPS/
 
 ---
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### Error: "resolver or addr is not configured for ENS name"
 **Causa**: Estás pasando una dirección en vez de un índice de cuenta.
@@ -618,7 +618,7 @@ node indexP.js
 
 ---
 
-## 📞 Soporte
+## Soporte
 
 Para preguntas sobre el proyecto:
 - Revisa la documentación de [Ethers.js](https://docs.ethers.org/v5/)
@@ -627,13 +627,13 @@ Para preguntas sobre el proyecto:
 
 ---
 
-## 📜 Licencia
+## Licencia
 
 MIT License - Proyecto académico para la materia de DApps
 
 ---
 
-**¡Listo para usar! 🚀**
+**Listo para usar**
 
 Para comenzar:
 1. Configura tu `.env`

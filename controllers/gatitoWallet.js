@@ -1,10 +1,7 @@
 const { ethers } = require('ethers');
 const contract = require('../backend/artifacts/contracts/GatitoWallet.sol/GatitosPaymentMultisig.json');
 const { createTransaction, getContract } = require('../utils/contractHelper');
-
 const { WALLET_CONTRACT } = process.env;
-
-// --- SOLO LÓGICA MULTISIG Y FONDOS ---
 
 async function crearTransaccion(destino, monto, account) {
     const montoWei = ethers.utils.parseEther(monto.toString());

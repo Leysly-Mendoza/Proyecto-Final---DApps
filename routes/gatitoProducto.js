@@ -2,9 +2,6 @@ const express = require('express');
 const router = express.Router();
 const productoController = require('../controllers/gatitoProducto');
 
-/* ---------------------------------------------------
-   🐱 1. AGREGAR GATITO
---------------------------------------------------- */
 router.post('/agregar', async (req, res) => {
   try {
     const { nombre, precio, imagen, cuenta } = req.body;
@@ -22,9 +19,6 @@ router.post('/agregar', async (req, res) => {
   }
 });
 
-/* ---------------------------------------------------
-   🐱 2. COMPRAR GATITO
---------------------------------------------------- */
 router.post('/comprar', async (req, res) => {
   try {
     const { gatitoId, cuenta } = req.body;
@@ -38,9 +32,6 @@ router.post('/comprar', async (req, res) => {
   }
 });
 
-/* ---------------------------------------------------
-   🐱 3. DESHABILITAR GATITO
---------------------------------------------------- */
 router.post('/deshabilitar', async (req, res) => {
   try {
     const { gatitoId, cuenta } = req.body;
@@ -57,9 +48,6 @@ router.post('/deshabilitar', async (req, res) => {
   }
 });
 
-/* ---------------------------------------------------
-   🐱 4. OBTENER TODOS LOS GATITOS
---------------------------------------------------- */
 router.get('/todos', async (req, res) => {
   try {
     const lista = await productoController.obtenerGatitos();

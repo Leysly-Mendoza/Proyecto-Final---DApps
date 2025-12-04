@@ -12,8 +12,6 @@ function App() {
   const [account, setAccount] = useState(null);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
-  
-  // Estados para el formulario de Agregar (Solo Owner)
   const [newName, setNewName] = useState("");
   const [newPrice, setNewPrice] = useState("");
   const [newImage, setNewImage] = useState("");
@@ -30,11 +28,10 @@ function App() {
       const response = await fetch(`${API_BASE_URL}/product/todos`);
       const data = await response.json();
       if (data.success) {
-        // Mapear los campos del backend al formato del frontend
         setProducts(data.gatitos.map(g => ({
           id: g.id,
           name: g.nombre,
-          price: g.precioEth, // Ya viene formateado en ETH desde el backend
+          price: g.precioEth, 
           image: g.imagen,
           active: g.disponible
         })));
@@ -44,7 +41,6 @@ function App() {
     }
   };
 
-  // --- 1. CONEXIÓN SEGURA (Compatible v5) ---
   const checkIfWalletIsConnected = async () => {
     if (window.ethereum) {
       const accounts = await window.ethereum.request({ method: 'eth_accounts' });
@@ -64,7 +60,6 @@ function App() {
     }
   };
 
-  // --- 2. SUBIR IMAGEN A PINATA ---
   const uploadToPinata = async (file) => {
     if (!file) return null;
 
@@ -86,7 +81,7 @@ function App() {
       setUploading(false);
 
       if (data.IpfsHash) {
-        return data.IpfsHash; // Retorna el hash IPFS
+        return data.IpfsHash; 
       } else {
         throw new Error('Error subiendo a Pinata');
       }
@@ -97,12 +92,9 @@ function App() {
     }
   };
 
-  // --- 3. AGREGAR GATITO (SOLO OWNER) - Ahora con Pinata ---
   const handleAddProduct = async (e) => {
     e.preventDefault();
     if (!account) return;
-
-    // Validar que haya imagen seleccionada
     if (!selectedFile && !newImage) {
       alert("Por favor selecciona una imagen o ingresa una URL");
       return;
@@ -110,32 +102,28 @@ function App() {
 
     try {
         setLoading(true);
-
-        // Si hay archivo seleccionado, subirlo a Pinata primero
         let ipfsHash = newImage;
         if (selectedFile) {
-          console.log("📤 Subiendo imagen a Pinata...");
+          console.log("Subiendo imagen a Pinata");
           ipfsHash = await uploadToPinata(selectedFile);
-          console.log("✅ Imagen subida a IPFS:", ipfsHash);
+          console.log("Imagen subida a IPFS:", ipfsHash);
         }
 
-        // OJO: Asegúrate que esta ruta de importación sea correcta:
         const ABI = await import('./artifacts/GatitosPaymentMultisig.json');
-
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         const signer = provider.getSigner();
         const contract = new ethers.Contract(WALLET_ADDRESS, ABI.abi, signer);
 
-        console.log("📝 Enviando transacción para agregar gatito...");
+        console.log("Enviando transacción para agregar gatito");
 
         const tx = await contract.agregarGatito(
             newName,
             ethers.utils.parseEther(newPrice),
-            ipfsHash // Usar el hash IPFS
+            ipfsHash 
         );
 
         await tx.wait();
-        alert("¡Gatito puesto en venta exitosamente! 🐱");
+        alert("¡Gatito puesto en venta exitosamente!");
 
         setNewName("");
         setNewPrice("");
@@ -151,35 +139,29 @@ function App() {
     }
   };
 
-  // --- 3. COMPRAR GATITO (CLIENTES) - 1 solo pago ---
   const buyProduct = async (product) => {
     if (!account) return alert("Conecta tu wallet primero");
 
     try {
         setLoading(true);
 
-        console.log("🛒 Iniciando compra (1 solo pago)...");
+        console.log("Iniciando compra");
 
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         const signer = provider.getSigner();
-
-        // Cargar ABI del contrato Wallet
         const WalletABI = await import('./artifacts/GatitosPaymentMultisig.json');
-
         const walletContract = new ethers.Contract(WALLET_ADDRESS, WalletABI.abi, signer);
-
         const priceWei = ethers.utils.parseEther(product.price);
 
-        // PASO 1: Comprar en el contrato Wallet (1 SOLO PAGO)
-        console.log("📝 Comprando gatito (NFT incluido)...");
+        console.log("Comprando gatito");
         const tx = await walletContract.comprarGatito(product.id, {
             value: priceWei
         });
         await tx.wait();
-        console.log("✅ Compra completada");
-        console.log("💡 El owner puede repartir fondos cuando quiera");
+        console.log("Compra completada");
+        console.log("El owner puede repartir fondos cuando quiera");
 
-        alert("¡Compra exitosa! 🎉\n\n✅ Gatito comprado\n✅ NFT ya fue minteado\n\nEl gatito es tuyo.");
+        alert("¡Compra exitosa! 🎉\n\nGatito comprado\nNFT ya fue minteado\n\nEl gatito es tuyo.");
         fetchProducts();
 
     } catch (error) {
@@ -190,7 +172,6 @@ function App() {
     }
   };
 
-  // Determinar si el usuario conectado es el dueño
   const isOwner = account && account.toLowerCase() === OWNER_ADDRESS;
 
   return (
@@ -207,8 +188,6 @@ function App() {
         textAlign: 'center' 
       }}>
         <h1 style={{ marginBottom: account ? '10px' : '20px' }}>🐱 Tienda de Gatitos</h1>
-        
-        {/* INFO DE LA CUENTA O BOTÓN DE CONEXIÓN */}
         {!account ? (
             <button onClick={connectWallet} disabled={loading} style={{ 
               padding: '10px 20px', 
@@ -218,9 +197,9 @@ function App() {
               border: 'none', 
               borderRadius: '5px', 
               color: 'white',
-              marginTop: '10px' // Espacio después del título
+              marginTop: '10px' 
             }}>
-                Conectar Wallet
+                Conectar a MetaMask
             </button>
         ) : (
             <div style={{ textAlign: 'center' }}>
@@ -233,10 +212,9 @@ function App() {
         )}
       </header>
 
-      {/* --- FORMULARIO PARA EL DUEÑO (AGREGAR/VENDER) --- */}
       {isOwner && (
         <div style={{ maxWidth: '500px', margin: '0 auto 50px auto', padding: '20px', border: '1px solid #444', borderRadius: '10px', backgroundColor: '#2a2a2a' }}>
-            <h2 style={{ marginTop: 0, textAlign: 'center', color: 'gold' }}>🐱 Vender Nuevo Gatito (Con NFT)</h2>
+            <h2 style={{ marginTop: 0, textAlign: 'center', color: 'gold' }}>Vender Nuevo Gatito (Con NFT)</h2>
             <form onSubmit={handleAddProduct} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                 <input
                     placeholder="Nombre del Gatito"
@@ -254,7 +232,7 @@ function App() {
                 />
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                    <label style={{ color: '#aaa', fontSize: '14px' }}>📸 Selecciona una imagen:</label>
+                    <label style={{ color: '#aaa', fontSize: '14px' }}>Selecciona una imagen:</label>
                     <input
                         type="file"
                         accept="image/*"
@@ -263,7 +241,7 @@ function App() {
                     />
                     {selectedFile && (
                         <p style={{ color: '#4CAF50', fontSize: '12px', margin: 0 }}>
-                            ✅ Archivo seleccionado: {selectedFile.name}
+                            Archivo seleccionado: {selectedFile.name}
                         </p>
                     )}
                 </div>
@@ -278,7 +256,7 @@ function App() {
                 />
 
                 <button type="submit" disabled={loading || uploading} style={{ padding: '12px', background: (loading || uploading) ? '#666' : 'gold', color: 'black', border: 'none', borderRadius: '5px', fontWeight: 'bold', cursor: (loading || uploading) ? 'not-allowed' : 'pointer' }}>
-                    {uploading ? "📤 Subiendo a IPFS..." : loading ? "⛓️ Procesando en Blockchain..." : "🚀 Poner en Venta (NFT)"}
+                    {uploading ? "Subiendo a IPFS" : loading ? "Procesando en Blockchain" : "Poner en Venta"}
                 </button>
             </form>
         </div>
@@ -297,7 +275,7 @@ function App() {
                 src={p.image.startsWith('http') ? p.image : `https://gateway.pinata.cloud/ipfs/${p.image}`} 
                 alt={p.name} 
                 style={{ width: '100%', height: '200px', objectFit: 'cover', borderRadius: '5px', marginBottom: '10px' }}
-                onError={(e) => { e.target.onerror = null; e.target.src = "https://placekitten.com/200/200"; }} // Fallback si falla la imagen
+                onError={(e) => { e.target.onerror = null; e.target.src = "https://placekitten.com/200/200"; }} 
             />
             
             <h3 style={{ margin: '5px 0' }}>{p.name}</h3>
@@ -305,7 +283,6 @@ function App() {
             
             {/* LÓGICA DE BOTONES */}
             {p.active ? (
-                // Si está disponible...
                 isOwner ? (
                     <button disabled style={{ marginTop: '10px', padding: '10px', width: '100%', background: '#333', color: 'gold', border: '1px solid gold', borderRadius: '5px', cursor: 'not-allowed' }}>
                         Tu producto (En Venta)
@@ -316,11 +293,10 @@ function App() {
                         disabled={loading} 
                         style={{ marginTop: '10px', padding: '10px', width: '100%', background: '#646cff', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold' }}
                     >
-                        {loading ? "Procesando..." : "Comprar Ahora"}
+                        {loading ? "Procesando" : "Comprar Ahora"}
                     </button>
                 )
             ) : (
-                // Si NO está disponible (Vendido)
                 <button disabled style={{ marginTop: '10px', padding: '10px', width: '100%', background: '#333', color: 'red', border: '1px solid red', borderRadius: '5px', cursor: 'not-allowed' }}>
                     VENDIDO
                 </button>

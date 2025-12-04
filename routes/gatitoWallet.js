@@ -2,8 +2,6 @@ const express = require('express');
 const router = express.Router();
 const walletController = require('../controllers/gatitoWallet');
 
-// --- RUTAS MULTISIG ---
-
 router.post('/crear-transaccion', async (req, res) => {
     try {
         const { destino, monto, cuenta } = req.body;
