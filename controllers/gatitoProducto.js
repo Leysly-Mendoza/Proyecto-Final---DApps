@@ -1,12 +1,11 @@
 const { ethers } = require('ethers');
 
-// ABIs de los 3 contratos
+// ABIs de los 2 contratos principales
 const walletABI = require('../backend/artifacts/contracts/GatitoWallet.sol/GatitosPaymentMultisig.json');
 const nftABI = require('../backend/artifacts/contracts/GatitoNFT.sol/GatitoNFT.json');
-const pagosABI = require('../backend/artifacts/contracts/GatitoPagos.sol/PagosGatitos.json');
 
 const { createTransaction, getContract } = require('../utils/contractHelper');
-const { WALLET_CONTRACT, NFT_CONTRACT_ADDRESS, PAGOS_CONTRACT_ADDRESS } = process.env;
+const { WALLET_CONTRACT, NFT_CONTRACT_ADDRESS } = process.env;
 
 /* ----------------------------------------------------------
     🐱 1. AGREGAR GATITO (Ahora con NFT)
