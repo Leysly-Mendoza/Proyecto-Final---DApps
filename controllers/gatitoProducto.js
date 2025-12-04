@@ -5,6 +5,7 @@ const walletABI = require('../backend/artifacts/contracts/GatitoWallet.sol/Gatit
 const nftABI = require('../backend/artifacts/contracts/GatitoNFT.sol/GatitoNFT.json');
 
 const { createTransaction, getContract } = require('../utils/contractHelper');
+const { getPublicKey } = require('../utils/accountManager');
 const { WALLET_CONTRACT, NFT_CONTRACT_ADDRESS } = process.env;
 
 /* ----------------------------------------------------------
@@ -15,12 +16,15 @@ const { WALLET_CONTRACT, NFT_CONTRACT_ADDRESS } = process.env;
 async function agregarGatito(nombre, precioEth, imagenIpfs, cuenta) {
   const precioWei = ethers.utils.parseEther(precioEth.toString());
 
+  // Convertir índice de cuenta a dirección
+  const direccion = getPublicKey(cuenta);
+
   // PASO 1: Mintear NFT (el owner del NFT será la cuenta que lo agrega)
   const txNFT = await createTransaction(
     NFT_CONTRACT_ADDRESS,
     nftABI.abi,
     "mintearGatito",
-    [cuenta, imagenIpfs], // dueño inicial es quien agrega el gatito
+    [direccion, imagenIpfs], // dueño inicial es quien agrega el gatito
     cuenta
   );
 
