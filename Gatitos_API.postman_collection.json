@@ -1,0 +1,241 @@
+{
+  "info": {
+    "name": "Gatitos Blockchain API",
+    "description": "API para el sistema de venta de gatitos NFT con 3 contratos",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Productos (Gatitos)",
+      "item": [
+        {
+          "name": "Obtener todos los gatitos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/api/product/todos",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["api", "product", "todos"]
+            }
+          }
+        },
+        {
+          "name": "Agregar gatito (Owner)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Gatito Test\",\n  \"precio\": \"0.001\",\n  \"imagen\": \"QmTestHash\",\n  \"cuenta\": \"0xb17c90BD1BC4fdb4c90b7371CDcEb4D8B1bC68ac\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:3000/api/product/agregar",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["api", "product", "agregar"]
+            }
+          }
+        },
+        {
+          "name": "Comprar gatito",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"gatitoId\": \"0\",\n  \"cuenta\": \"0xB32A8EBb8a5c0A77feA3f82186E6aaB48A93215B\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:3000/api/product/comprar",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["api", "product", "comprar"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Pagos",
+      "item": [
+        {
+          "name": "Ver balance de pagos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/api/pagos/balance-gatitos",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["api", "pagos", "balance-gatitos"]
+            }
+          }
+        },
+        {
+          "name": "Repartir pagos (Owner)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"account\": \"0xb17c90BD1BC4fdb4c90b7371CDcEb4D8B1bC68ac\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:3000/api/pagos/liberar-pagos",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["api", "pagos", "liberar-pagos"]
+            }
+          }
+        },
+        {
+          "name": "Depositar pago",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": \"0.001\",\n  \"account\": \"0xb17c90BD1BC4fdb4c90b7371CDcEb4D8B1bC68ac\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:3000/api/pagos/depositar-gatito",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["api", "pagos", "depositar-gatito"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Wallet (Multisig)",
+      "item": [
+        {
+          "name": "Ver balance del wallet",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/api/wallet/balance",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["api", "wallet", "balance"]
+            }
+          }
+        },
+        {
+          "name": "Ver transacciones",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/api/wallet/transacciones",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["api", "wallet", "transacciones"]
+            }
+          }
+        },
+        {
+          "name": "Crear transacción multisig",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"destino\": \"0xB32A8EBb8a5c0A77feA3f82186E6aaB48A93215B\",\n  \"monto\": \"0.001\",\n  \"cuenta\": \"0xb17c90BD1BC4fdb4c90b7371CDcEb4D8B1bC68ac\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:3000/api/wallet/crear",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["api", "wallet", "crear"]
+            }
+          }
+        },
+        {
+          "name": "Firmar transacción",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"txId\": \"0\",\n  \"cuenta\": \"0xb17c90BD1BC4fdb4c90b7371CDcEb4D8B1bC68ac\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:3000/api/wallet/firmar",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["api", "wallet", "firmar"]
+            }
+          }
+        },
+        {
+          "name": "Ejecutar transacción",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"txId\": \"0\",\n  \"cuenta\": \"0xb17c90BD1BC4fdb4c90b7371CDcEb4D8B1bC68ac\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:3000/api/wallet/ejecutar",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["api", "wallet", "ejecutar"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

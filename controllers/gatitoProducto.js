@@ -38,20 +38,19 @@ async function agregarGatito(nombre, precioEth, imagenIpfs, cuenta) {
 }
 
 /* ----------------------------------------------------------
-    🐱 2. COMPRAR GATITO (Integrado con los 3 contratos)
-    Flujo: 1. Compra en Wallet, 2. Pago a PagosGatitos, 3. Transferir NFT
+    🐱 2. COMPRAR GATITO (Sin pago duplicado)
+    Flujo: 1. NFT minteado al agregar, 2. Compra en Wallet (1 solo pago)
+    Nota: El reparto se hace después con repartirFondos() del Wallet
 ------------------------------------------------------------- */
 
 async function comprarGatito(gatitoId, cuenta) {
   const wallet = getContract(WALLET_CONTRACT, walletABI.abi);
-  const nft = getContract(NFT_CONTRACT_ADDRESS, nftABI.abi);
 
   const todos = await wallet.obtenerGatitos();
   const g = todos[gatitoId];
   const precio = g.precio; // en wei
-  const criador = g.criador;
 
-  // PASO 1: Marcar como comprado en el contrato Wallet
+  // PASO 1: Comprar en el contrato Wallet (1 solo pago)
   const txCompra = await createTransaction(
     WALLET_CONTRACT,
     walletABI.abi,
@@ -61,37 +60,11 @@ async function comprarGatito(gatitoId, cuenta) {
     precio
   );
 
-  console.log("✅ Compra registrada en Wallet:", txCompra);
+  console.log("✅ Compra registrada en Wallet (NFT + Pago)");
+  console.log("💡 El owner puede repartir fondos usando repartirFondos()");
 
-  // PASO 2: Enviar el pago al contrato PagosGatitos
-  const txPago = await createTransaction(
-    PAGOS_CONTRACT_ADDRESS,
-    pagosABI.abi,
-    "pagarGatito",
-    [],
-    cuenta,
-    precio // Enviamos el mismo monto como pago
-  );
-
-  console.log("✅ Pago enviado a PagosGatitos:", txPago);
-
-  // PASO 3: Transferir el NFT del criador al comprador
-  // El tokenId del NFT es el mismo que el gatitoId + 1 (porque los NFTs empiezan en 1)
-  const tokenId = parseInt(gatitoId) + 1;
-
-  try {
-    const txNFT = await createTransaction(
-      NFT_CONTRACT_ADDRESS,
-      nftABI.abi,
-      "transferFrom",
-      [criador, cuenta, tokenId],
-      criador // La transacción la ejecuta el criador (owner del NFT)
-    );
-    console.log("✅ NFT transferido al comprador:", txNFT);
-  } catch (error) {
-    console.warn("⚠️ No se pudo transferir NFT automáticamente:", error.message);
-    console.log("El owner debe transferir manualmente el NFT tokenId:", tokenId);
-  }
+  // Nota: El NFT ya fue minteado cuando se agregó el gatito
+  // La transferencia del NFT se haría manualmente o con approve
 
   return txCompra;
 }

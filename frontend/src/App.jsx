@@ -151,49 +151,35 @@ function App() {
     }
   };
 
-  // --- 3. COMPRAR GATITO (CLIENTES) - Usando los 3 contratos ---
+  // --- 3. COMPRAR GATITO (CLIENTES) - 1 solo pago ---
   const buyProduct = async (product) => {
     if (!account) return alert("Conecta tu wallet primero");
 
     try {
         setLoading(true);
 
-        console.log("🛒 Iniciando compra usando los 3 contratos...");
+        console.log("🛒 Iniciando compra (1 solo pago)...");
 
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         const signer = provider.getSigner();
 
-        // Cargar ABIs de los 3 contratos
+        // Cargar ABI del contrato Wallet
         const WalletABI = await import('./artifacts/GatitosPaymentMultisig.json');
-        const PagosABI = await import('./artifacts/PagosGatitos.json');
-
-        const PAGOS_ADDRESS = "0x80c8a61532aC59e3Caa9b57C1C79709D53cb3E59";
 
         const walletContract = new ethers.Contract(WALLET_ADDRESS, WalletABI.abi, signer);
-        const pagosContract = new ethers.Contract(PAGOS_ADDRESS, PagosABI.abi, signer);
 
         const priceWei = ethers.utils.parseEther(product.price);
 
-        // PASO 1: Comprar en el contrato Wallet
-        console.log("📝 PASO 1: Registrando compra en GatitosPaymentMultisig...");
-        const tx1 = await walletContract.comprarGatito(product.id, {
+        // PASO 1: Comprar en el contrato Wallet (1 SOLO PAGO)
+        console.log("📝 Comprando gatito (NFT incluido)...");
+        const tx = await walletContract.comprarGatito(product.id, {
             value: priceWei
         });
-        await tx1.wait();
-        console.log("✅ Compra registrada");
+        await tx.wait();
+        console.log("✅ Compra completada");
+        console.log("💡 El owner puede repartir fondos cuando quiera");
 
-        // PASO 2: Enviar pago al contrato PagosGatitos
-        console.log("📝 PASO 2: Enviando pago a PagosGatitos...");
-        const tx2 = await pagosContract.pagarGatito({
-            value: priceWei
-        });
-        await tx2.wait();
-        console.log("✅ Pago enviado a PagosGatitos");
-
-        // PASO 3: NFT se transferiría automáticamente (si está configurado)
-        console.log("📝 PASO 3: NFT listo para transferencia");
-
-        alert("¡Compra exitosa! 🎉\n\n✅ Compra registrada\n✅ Pago enviado a PagosGatitos\n\nEl gatito es tuyo.");
+        alert("¡Compra exitosa! 🎉\n\n✅ Gatito comprado\n✅ NFT ya fue minteado\n\nEl gatito es tuyo.");
         fetchProducts();
 
     } catch (error) {
